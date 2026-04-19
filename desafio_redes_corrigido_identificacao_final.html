@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desafio Prático de Redes | Mariana BS - Be Safe</title>
+  <style>
+    :root{
+      --bg1:#08111f; --bg2:#0c1c33; --bg3:#102847; --card:#0d1628cc;
+      --line:#5eead4; --accent:#7c3aed; --accent2:#22d3ee;
+      --ok:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+      --text:#e6f1ff; --muted:#9db6d1; --gold:#d9b96e; --gold2:#f6e6b4;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0; font-family:Inter,Segoe UI,Arial,sans-serif; color:var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124,58,237,.28), transparent 25%),
+        radial-gradient(circle at 85% 15%, rgba(34,211,238,.20), transparent 25%),
+        radial-gradient(circle at 50% 80%, rgba(94,234,212,.15), transparent 28%),
+        linear-gradient(135deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+      min-height:100vh; overflow-x:hidden;
+    }
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size:28px 28px; opacity:.25;
+    }
+    .wrap{max-width:1180px; margin:0 auto; padding:28px 18px 80px; position:relative; z-index:1}
+    .hero,.panel{
+      border:1px solid rgba(255,255,255,.10); border-radius:24px;
+      background:rgba(13,22,40,.80); backdrop-filter:blur(10px);
+      box-shadow:0 16px 40px rgba(0,0,0,.35)
+    }
+    .hero{padding:34px 30px; position:relative; overflow:hidden; margin-bottom:22px}
+    .hero::after{
+      content:""; position:absolute; width:380px; height:380px; border-radius:50%;
+      right:-110px; top:-110px; background:radial-gradient(circle, rgba(34,211,238,.35), transparent 60%);
+      filter:blur(8px)
+    }
+    .badge{display:inline-flex; padding:8px 14px; border:1px solid rgba(94,234,212,.35); border-radius:999px; color:#c5fff8; background:rgba(94,234,212,.08); font-size:.9rem; margin-bottom:18px}
+    h1{margin:0 0 10px; font-size:clamp(2rem,4vw,3.4rem); line-height:1.05}
+    .subtitle{max-width:860px; color:var(--muted); line-height:1.7; font-size:1.03rem; margin:0}
+    .grid{display:grid; grid-template-columns:1fr; gap:22px}
+    .inner{padding:24px}
+    .section-title{margin:0 0 12px; font-size:1.2rem; display:flex; align-items:center; gap:10px}
+    .dot{width:10px; height:10px; border-radius:50%; background:linear-gradient(135deg,var(--accent2),var(--line)); box-shadow:0 0 18px rgba(34,211,238,.55)}
+    .case p,.case li{color:#d9e7f8; line-height:1.7; font-size:.98rem}
+    .case ul{margin:10px 0 0; padding-left:20px}
+    .metrics{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:16px}
+    .metric{border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:14px; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))}
+    .metric strong{display:block; font-size:1.1rem; margin-bottom:4px; color:#fff}
+    .metric span{color:var(--muted); font-size:.92rem; line-height:1.4}
+    .topology{margin-top:16px; border:1px dashed rgba(94,234,212,.28); border-radius:20px; padding:16px; background:rgba(3,10,20,.35); font-family:Consolas,Menlo,monospace; white-space:pre-wrap; color:#c4fff5; line-height:1.65; font-size:.92rem}
+    .questions{margin-top:4px; display:grid; gap:18px}
+    .question{border:1px solid rgba(255,255,255,.10); border-radius:22px; overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025)); box-shadow:0 12px 32px rgba(0,0,0,.22)}
+    .q-head{padding:18px 18px 8px; display:flex; align-items:flex-start; gap:12px}
+    .q-number{min-width:40px; width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, rgba(124,58,237,.26), rgba(34,211,238,.24)); border:1px solid rgba(255,255,255,.12); font-weight:800}
+    .q-text{margin:0; line-height:1.65; color:#eef6ff; font-size:1rem; font-weight:600}
+    .options{display:grid; gap:10px; padding:0 18px 18px}
+    .option{position:relative}
+    .option input{position:absolute; opacity:0; pointer-events:none}
+    .option label{display:block; border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:13px 14px; background:rgba(255,255,255,.04); cursor:pointer; line-height:1.55; color:#dbe8f8}
+    .option label b{color:#fff; margin-right:6px}
+    .option input:checked + label{border-color:rgba(94,234,212,.55); background:linear-gradient(180deg, rgba(34,211,238,.12), rgba(124,58,237,.12)); box-shadow:0 0 0 4px rgba(94,234,212,.08)}
+    .participant-panel{margin-top:26px}
+    .form-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:14px}
+    .field{display:flex; flex-direction:column; gap:7px}
+    .field.full{grid-column:1 / -1}
+    label{color:#cfe0f7; font-size:.96rem; font-weight:600}
+    input,select{width:100%; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:#fff; padding:14px; outline:none}
+    option{color:#111}
+    .actions{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:24px}
+    .btn{border:0; border-radius:16px; padding:14px 18px; font-weight:800; cursor:pointer; font-size:.98rem}
+    .btn-primary{color:#061019; background:linear-gradient(135deg, var(--line), var(--accent2))}
+    .btn-secondary{color:#eef7ff; background:linear-gradient(135deg, rgba(124,58,237,.28), rgba(255,255,255,.08)); border:1px solid rgba(255,255,255,.12)}
+    .btn:disabled{opacity:.45; cursor:not-allowed}
+    .status{margin-top:18px; padding:15px 16px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.045); color:#dce8f7; line-height:1.6; min-height:58px}
+    .status.ok{border-color:rgba(34,197,94,.28); background:rgba(34,197,94,.10); color:#dcffe6}
+    .status.bad{border-color:rgba(239,68,68,.25); background:rgba(239,68,68,.08); color:#ffe2e2}
+    .small{color:var(--muted); font-size:.88rem; line-height:1.6}
+    .answer-report-shell,.certificate-shell{margin-top:34px; display:none}
+    .report-paper{background:linear-gradient(180deg, #ffffff, #f8fbff); color:#102033; border-radius:26px; padding:34px; box-shadow:0 28px 70px rgba(0,0,0,.28); border:1px solid rgba(9,30,66,.08)}
+    .report-head h2{margin:0; color:#0c2240; font-size:2rem}
+    .report-intro{color:#294261; line-height:1.7; margin:8px 0 20px}
+    .report-meta{display:grid; grid-template-columns:repeat(2,minmax(180px,1fr)); gap:10px; margin-bottom:16px}
+    .meta-box{background:#f3f8ff; border:1px solid #dbe7f6; border-radius:14px; padding:12px 14px}
+    .meta-box span{display:block; font-size:.78rem; color:#4d6583; text-transform:uppercase; font-weight:800; margin-bottom:4px}
+    .meta-box strong{color:#102033}
+    .report-question{border:1px solid #dbe7f6; border-radius:18px; padding:18px; margin:14px 0; background:#fff; page-break-inside:avoid}
+    .report-question h3{margin:0 0 10px; color:#102033; font-size:1.06rem; line-height:1.55}
+    .report-line{margin:8px 0; line-height:1.65; color:#203754}
+    .report-chip{display:inline-flex; align-items:center; border-radius:999px; padding:7px 12px; font-weight:800; font-size:.84rem; margin-right:8px; margin-bottom:10px}
+    .chip-ok{background:#e8fff0; color:#166534; border:1px solid #b8f0c9}
+    .chip-bad{background:#fff0f0; color:#991b1b; border:1px solid #fecaca}
+    .chip-warn{background:#fff8e8; color:#9a6700; border:1px solid #fde68a}
+    .certificate{position:relative; overflow:hidden; background:radial-gradient(circle at 15% 15%, rgba(217,185,110,.16), transparent 20%), radial-gradient(circle at 85% 18%, rgba(246,230,180,.12), transparent 20%), linear-gradient(135deg, #fffaf0, #fffdf7 40%, #f8f1de 100%); color:#2c2415; border-radius:28px; border:10px solid rgba(217,185,110,.55); box-shadow:0 28px 70px rgba(0,0,0,.35); padding:42px 36px}
+    .cert-mark{width:84px; height:84px; margin:0 auto 14px; border-radius:50%; display:grid; place-items:center; background:radial-gradient(circle, var(--gold2), var(--gold)); font-size:2rem}
+    .certificate h2{margin:0; text-align:center; font-size:2rem; letter-spacing:.18em}
+    .cert-sub{text-align:center; margin-top:8px; color:#6b5630; font-weight:700; letter-spacing:.1em; text-transform:uppercase; font-size:.8rem}
+    .cert-body{max-width:860px; margin:22px auto 0; text-align:center}
+    .cert-body p{margin:10px 0; line-height:1.7; font-size:1.05rem; color:#4a3b1e}
+    .cert-name{margin:20px 0 12px; font-size:clamp(1.8rem,4vw,2.8rem); color:#2b2110; font-weight:900}
+    .cert-highlight{font-size:1.22rem; font-weight:900; color:#3a2a0d; margin:16px 0}
+    .cert-meta{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:26px}
+    .cert-box{background:rgba(255,255,255,.55); border:1px solid rgba(117,90,34,.14); border-radius:16px; padding:14px; min-height:82px}
+    .cert-box span{display:block; font-size:.76rem; color:#7a6239; text-transform:uppercase; font-weight:800; margin-bottom:7px}
+    .cert-box strong{display:block; font-size:1rem; color:#2e2311; line-height:1.45}
+    .cert-footer{margin-top:28px; display:flex; justify-content:space-between; gap:20px; align-items:end; flex-wrap:wrap}
+    .sign-line{margin-top:34px; border-top:2px solid rgba(58,42,13,.30); padding-top:8px; font-weight:900}
+    .seal{min-width:168px; height:168px; border-radius:50%; border:8px double rgba(117,90,34,.45); display:grid; place-items:center; text-align:center; padding:18px; color:#5b4418; font-weight:900; background:radial-gradient(circle, rgba(246,230,180,.8), rgba(217,185,110,.35))}
+    .download-row{display:flex; justify-content:center; margin-top:20px; gap:12px; flex-wrap:wrap}
+    .print-report-mode .hero,.print-report-mode .case-panel,.print-report-mode .questions,.print-report-mode .participant-panel,.print-report-mode .certificate-shell{display:none !important}
+    .print-certificate-mode .hero,.print-certificate-mode .case-panel,.print-certificate-mode .questions,.print-certificate-mode .participant-panel,.print-certificate-mode .answer-report-shell{display:none !important}
+    @media (max-width:920px){
+      .metrics,.form-grid,.report-meta,.cert-meta{grid-template-columns:1fr}
+      .cert-footer{flex-direction:column; align-items:flex-start}
+    }
+    @media print{
+      body{background:#fff} body::before{display:none} .wrap{padding:0; max-width:none}
+      .download-row,.actions{display:none !important}
+      body.print-report-mode .answer-report-shell{display:block !important; margin:0 !important}
+      body.print-report-mode .report-paper{box-shadow:none; border-radius:0; min-height:100vh}
+      body.print-certificate-mode .certificate-shell{display:block !important; margin:0 !important}
+      body.print-certificate-mode .certificate{box-shadow:none; border-width:8px; min-height:100vh; border-radius:0}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="badge">Desafio prático • redes corporativas • certificação condicionada ao acerto total</div>
+      <h1>Desafio Prático de Redes</h1>
+      <p class="subtitle">Um case complexo, com fundamentos reais de redes e múltiplos sintomas misturados. O participante precisa analisar segmentação, DHCP, DNS, VPN, MTU/MSS, firewall e QoS. O certificado só é liberado com 10 de 10.</p>
+    </section>
+
+    <section class="panel case case-panel">
+      <div class="inner">
+        <h2 class="section-title"><span class="dot"></span>Case</h2>
+        <p>A empresa <strong>OrbeLog</strong> possui matriz em Curitiba, filiais em Joinville e Campinas, e um datacenter terceirizado em São Paulo. Após uma janela de mudanças na madrugada de domingo, usuários passaram a relatar sintomas intermitentes: acesso ao ERP lento, falhas em uploads via HTTPS, oscilação na autenticação do portal interno, degradação de VoIP em horário de pico e comportamento inconsistente entre hosts do mesmo segmento.</p>
+        <p>O ambiente usa VLANs, trunk 802.1Q, roteamento inter-VLAN no core, OSPF, DHCP centralizado por helper, firewall com NAT de saída e VPN IPSec site-to-site até o datacenter. Durante a mudança, houve três ações confirmadas: <strong>revisão de trunk</strong>, <strong>nova policy na zona VPN do firewall</strong> e <strong>ajuste de parâmetros do túnel</strong>.</p>
+        <ul>
+          <li><strong>VLAN 10:</strong> Usuários administrativos — 10.10.10.0/24</li>
+          <li><strong>VLAN 20:</strong> Financeiro — 10.10.20.0/24</li>
+          <li><strong>VLAN 30:</strong> Voz — 10.10.30.0/24</li>
+          <li><strong>VLAN 40:</strong> Servidores locais — 10.10.40.0/24</li>
+          <li><strong>Datacenter:</strong> 172.20.0.0/16</li>
+        </ul>
+        <div class="metrics">
+          <div class="metric"><strong>Evidência 1</strong><span>Ping pequeno para 172.20.10.15 responde. Abertura do ERP oscila. Uploads maiores falham com muito mais frequência do que requisições leves.</span></div>
+          <div class="metric"><strong>Evidência 2</strong><span>VoIP degrada entre 9h e 11h, exatamente quando há pico de uso do ERP e sincronização de arquivos. Há jitter alto, mas não queda total do link.</span></div>
+          <div class="metric"><strong>Evidência 3</strong><span>Hosts da VLAN 20 recebem IP, máscara e gateway corretos. Parte deles falha em resolver nomes internos; por IP direto, alguns testes ao serviço seguem possíveis.</span></div>
+          <div class="metric"><strong>Evidência 4</strong><span>Não há indício de erro físico massivo: interfaces principais permanecem up/up, sem alarmes generalizados de link down na mudança.</span></div>
+        </div>
+        <div class="topology">Topologia simplificada
+
+[Hosts VLAN 10/20/30/40]
+        |
+   [Switch Acesso]
+        |
+   trunk 802.1Q
+        |
+ [Switch L3 / Core]
+        |
+   OSPF + ACL + DHCP Helper
+        |
+    [Firewall]
+   NAT + IPSec + Policies
+        |
+      Internet/MPLS
+        |
+   [Datacenter SP]
+  ERP / AD / DNS / File Server</div>
+      </div>
+    </section>
+
+    <section class="questions" id="questions"></section>
+
+    <section class="panel participant-panel">
+      <div class="inner">
+        <h2 class="section-title"><span class="dot"></span>Identificação do participante</h2>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="participantName">Nome completo</label>
+            <input id="participantName" type="text" placeholder="Digite o nome para aparecer no certificado e no gabarito" />
+          </div>
+          <div class="field">
+            <label for="participantPronoun">Pronome para o certificado</label>
+            <select id="participantPronoun">
+              <option value="">Selecione</option><option>ELE</option><option>ELA</option><option>ELU</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="participantDate">Data de conclusão</label>
+            <input id="participantDate" type="date" />
+          </div>
+        </div>
+        <div class="status" id="statusBox">Preencha seus dados e responda às 10 questões. Depois da correção, o sistema libera um PDF de respostas comentadas. O certificado só libera com acerto total.</div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="checkAnswers()">Corrigir desafio</button>
+          <button class="btn btn-secondary" id="downloadReportBtn" onclick="downloadAnswerReport()" disabled>Baixar PDF das respostas</button>
+          <button class="btn btn-secondary" id="downloadCertBtn" onclick="downloadCertificate()" disabled>Baixar PDF do certificado</button>
+          <button class="btn btn-secondary" id="gotoReportBtn" onclick="scrollToVisible('answerReportShell')" disabled>Ir para respostas comentadas</button>
+          <button class="btn btn-secondary" id="gotoCertBtn" onclick="scrollToVisible('certificateShell')" disabled>Ir para certificado</button>
+        </div>
+        <p class="small" style="margin-top:16px">São gerados dois PDFs separados: um com o espelho das respostas comentadas e outro com o certificado.</p>
+      </div>
+    </section>
+
+    <section class="answer-report-shell" id="answerReportShell">
+      <div class="report-paper" id="answerReport">
+        <div class="report-head">
+          <h2>Espelho das Respostas</h2>
+          <p class="report-intro">Relatório assinado do desafio, com o que foi marcado pelo participante, a alternativa correta e a justificativa técnica de cada item.</p>
+        </div>
+        <div class="report-meta">
+          <div class="meta-box"><span>Participante</span><strong id="reportName">--</strong></div>
+          <div class="meta-box"><span>Data</span><strong id="reportDate">--/--/----</strong></div>
+          <div class="meta-box"><span>Resultado</span><strong id="reportScore">0/10</strong></div>
+          <div class="meta-box"><span>Assinatura</span><strong>Mariana BS - Be Safe</strong></div>
+        </div>
+        <div id="reportQuestions"></div>
+      </div>
+      <div class="download-row"><button class="btn btn-primary" onclick="downloadAnswerReport()">Baixar PDF das respostas</button></div>
+    </section>
+
+    <section class="certificate-shell" id="certificateShell">
+      <div class="certificate" id="certificate">
+        <div class="cert-mark">★</div>
+        <h2>CERTIFICADO</h2>
+        <div class="cert-sub">Conclusão com êxito</div>
+        <div class="cert-body">
+          <p>Certificamos que</p>
+          <div class="cert-name" id="certName">NOME DO PARTICIPANTE</div>
+          <p>SUPEROU O DESAFIO DE REDES.</p>
+          <div class="cert-highlight" id="certHighlight">ELA É INCRÍVEL.</div>
+          <p>Demonstrou capacidade de análise em fundamentos de redes, troubleshooting multicamada, segmentação, DHCP, DNS, VPN, MTU/MSS, firewall e QoS.</p>
+          <div class="cert-meta">
+            <div class="cert-box"><span>Desafio</span><strong>Diagnóstico avançado de redes corporativas</strong></div>
+            <div class="cert-box"><span>Resultado</span><strong>100% de acerto nas 10 questões</strong></div>
+            <div class="cert-box"><span>Data de conclusão</span><strong id="certDate">--/--/----</strong></div>
+          </div>
+          <div class="cert-footer">
+            <div class="sign"><div class="sign-line">Mariana BS - Be Safe</div></div>
+            <div class="seal">DESAFIO<br>DE REDES<br>CONCLUÍDO</div>
+          </div>
+        </div>
+      </div>
+      <div class="download-row"><button class="btn btn-primary" onclick="downloadCertificate()">Baixar PDF do certificado</button></div>
+    </section>
+  </div>
+
+  <script>
+    const questionsData = [
+      {q:"Com base apenas nas evidências do case, qual hipótese explica melhor o fato de ICMP pequeno responder, mas uploads maiores pela VPN falharem com frequência significativamente maior?",options:{A:"Erro de DNS reverso no datacenter, porque a ausência de PTR costuma afetar sessões de aplicação mais extensas e, em ambientes heterogêneos, pode produzir sintomas que parecem intermitência.",B:"Problema de MTU/MSS no tráfego encapsulado da VPN, com impacto maior em pacotes maiores ou sessões que exigem segmentação consistente.",C:"Falha física generalizada no uplink principal, embora o cenário não traga evidência de queda massiva de interfaces nem de indisponibilidade total do caminho.",D:"Ausência de gateway nos clientes, mesmo com indicação explícita de que IP, máscara e gateway foram recebidos corretamente pelo menos para parte dos hosts.",E:"Comportamento isolado do navegador do ERP ou de um plugin de upload, sem relação relevante com encapsulamento, caminho ou políticas de rede."},answer:"B",explain:{correct:"A alternativa B é a mais forte porque o case liga diretamente a falha ao tráfego maior pela VPN. Isso é clássico de incompatibilidade de MTU/MSS em caminho encapsulado.",wrong:{A:"DNS reverso não explica de forma convincente por que uploads grandes falham mais do que requisições leves.",C:"Se fosse falha física generalizada no uplink, esperaríamos sintomas mais amplos.",D:"O enunciado informa que IP, máscara e gateway corretos foram recebidos.",E:"Problema de navegador não é a hipótese principal em um caso amarrado a túnel e múltiplos serviços."}}},
+      {q:"Se hosts da VLAN 20 recebem IP, máscara e gateway corretos, mas parte deles falha em resolver nomes internos, qual verificação inicial é a mais defensável antes de concluir que o problema é da aplicação?",options:{A:"Validar quais servidores DNS foram entregues via DHCP e se há reachability até eles pela VPN.",B:"Trocar a VLAN dos hosts para a VLAN 30, porque voz e DNS compartilham o mesmo domínio de broadcast e isso elimina variáveis de análise.",C:"Assumir problema de ARP, já que DNS não depende de IP quando o host já recebeu lease e o gateway padrão responde ao ping.",D:"Descartar DNS porque alguns usuários conseguem navegar na internet, o que em ambientes corporativos normalmente prova saúde completa de resolução de nomes.",E:"Desativar OSPF no core para forçar resolução local e verificar se os clientes passam a consultar o DNS sem roteamento dinâmico."},answer:"A",explain:{correct:"A alternativa A é a mais correta porque o problema relatado é resolução de nomes internos. O caminho inicial é verificar quais DNS foram entregues aos clientes e se o acesso a esses DNS internos pela VPN está íntegro.",wrong:{B:"Trocar VLAN é uma ação invasiva e sem relação direta com a hipótese principal.",C:"DNS depende de IP, rota e reachability até o resolvedor.",D:"Internet funcionando não elimina problema de DNS interno.",E:"Desativar OSPF como teste inicial é desproporcional."}}},
+      {q:"Qual consequência é mais compatível com trunk 802.1Q revisada incorretamente, por exemplo com VLAN permitida faltando ou nativa indevida?",options:{A:"Toda a rede necessariamente ficaria sem link físico e sem qualquer ICMP funcional, já que problemas de trunk costumam derrubar completamente a interface troncal.",B:"Somente tráfego multicast deixaria de passar, enquanto unicast seguiria invariavelmente intacto em qualquer cenário de inconsistência de VLAN.",C:"Uma ou mais VLANs poderiam apresentar indisponibilidade total ou parcial, inclusive com sintomas diferentes por serviço e segmento.",D:"O firewall deixaria de fazer NAT em todas as zonas por definição do padrão 802.1Q, independentemente da topologia ou das políticas aplicadas.",E:"Apenas VoIP seria afetado, porque trunk interfere primeiro em VLAN de voz e depois, se o problema escalar, em dados."},answer:"C",explain:{correct:"A alternativa C traduz o efeito mais realista de trunk incorreta: indisponibilidade total ou parcial de VLANs específicas.",wrong:{A:"Problema de trunk não exige queda física do link.",B:"Erro de trunk não afeta apenas multicast.",D:"NAT não é consequência automática do padrão 802.1Q.",E:"Depende das VLANs impactadas, não existe prioridade natural."}}},
+      {q:"Qual procedimento testa melhor a hipótese de MTU inadequada no caminho, evitando a falsa sensação de saúde trazida por ping padrão pequeno?",options:{A:"Realizar testes com payload progressivo e bit de não fragmentação, identificando o maior tamanho que atravessa o caminho com sucesso.",B:"Executar somente ipconfig ou ifconfig no cliente, porque esses comandos revelam de forma automática a MTU fim a fim e dispensam teste prático no caminho.",C:"Limpar cache DNS repetidamente até que o upload volte a funcionar, pois sessões HTTPS grandes falham primeiro quando o resolvedor ficou inconsistente após mudança.",D:"Trocar a máscara da VLAN 20 para /16, porque isso reduz o número de roteamentos internos e, por consequência, elimina fragmentação em túneis encapsulados.",E:"Desabilitar a criptografia da VPN como teste inicial padrão, assumindo que qualquer dificuldade com pacotes maiores decorre da etapa de cifragem."},answer:"A",explain:{correct:"A alternativa A é o teste clássico e mais objetivo.",wrong:{B:"MTU local da interface não prova MTU fim a fim.",C:"Limpar cache DNS não mede fragmentação.",D:"Alterar máscara não é método de teste para MTU em túnel.",E:"Desabilitar criptografia é mudança drástica e desnecessária como primeiro passo."}}},
+      {q:"No horário de pico, o VoIP sofre jitter alto ao mesmo tempo em que há sincronização de arquivos e uso intenso do ERP. Sem evidência de link fisicamente caindo, qual linha de investigação ganha mais força?",options:{A:"Ausência, erro ou baixa efetividade de QoS ou priorização para voz diante da concorrência com dados no mesmo período.",B:"Problema exclusivo de cabeamento analógico nos telefones IP, já que voz metálica quase sempre indica degradação elétrica no aparelho e não disputa por banda ou fila.",C:"DNS reverso no Active Directory, pois ele é uma das causas mais prováveis de jitter em RTP quando o ambiente possui autenticação centralizada e uso intenso do ERP.",D:"Erro de máscara na VLAN 40, obrigatoriamente responsável por qualquer falha de voz mesmo sem o case ligar o sintoma diretamente aos servidores locais.",E:"Falha no relógio do switch, pois jitter e sincronismo NTP são equivalentes do ponto de vista operacional em redes corporativas."},answer:"A",explain:{correct:"A alternativa A é a mais forte porque o problema aparece no pico, junto com tráfego pesado de dados, sem evidência de queda física.",wrong:{B:"Cabeamento do aparelho não é a hipótese mais defensável quando coincide com pico de tráfego.",C:"DNS reverso não é explicação principal para jitter de RTP.",D:"Erro de máscara na VLAN 40 não emerge do case como causa prioritária.",E:"NTP e jitter não são equivalentes."}}},
+      {q:"Por que a frase 'a rede está no ar porque pinga' é tecnicamente insuficiente neste caso?",options:{A:"Porque ICMP jamais deve ser usado em diagnóstico de redes, uma vez que ele só confunde o analista e não entrega nenhum dado aproveitável em troubleshooting real.",B:"Porque ping prova apenas existência de cabo, sem validar endereçamento, roteamento, políticas de firewall, DNS ou qualquer camada acima da física.",C:"Porque conectividade ICMP básica não garante aplicação, DNS, policy, MTU/MSS, sessão TCP nem comportamento sob carga ou por porta específica.",D:"Porque ping é um protocolo de roteamento e, por isso, não representa teste de conectividade entre host e serviço remoto.",E:"Porque qualquer rede que responda a ping obrigatoriamente está saudável em todas as camadas, e o problema então só pode estar no usuário final."},answer:"C",explain:{correct:"A alternativa C é a formulação mais completa e correta.",wrong:{A:"ICMP continua sendo útil em diagnóstico.",B:"Ping não prova apenas cabo; ele valida parte do caminho IP.",D:"Ping não é protocolo de roteamento.",E:"A alternativa afirma o oposto do que o case demonstra."}}},
+      {q:"Houve criação de policy nova na zona VPN do firewall na mesma janela. Qual sintoma combina melhor com regra ausente, ordem inadequada ou serviço ou porta incompleto na policy?",options:{A:"MAC do gateway muda aleatoriamente em toda a matriz, já que a zona VPN influencia diretamente a resolução ARP dos hosts e a tabela CAM dos switches de acesso.",B:"Parte do tráfego permitido continua funcionando, enquanto aplicações específicas, portas ou fluxos necessários falham seletivamente.",C:"As VLANs deixam de existir nos switches por influência direta do firewall, mesmo que o 802.1Q e a segmentação estejam implementados no domínio de switching.",D:"O DHCP passa a fornecer gateway incorreto para todos os clientes, porque o firewall atualizado assume automaticamente a função de relay e sobrescreve o helper configurado.",E:"A trunk do switch perde marcação 802.1Q por causa da ACL do firewall, já que a policy da zona VPN tem precedência sobre o encapsulamento na borda."},answer:"B",explain:{correct:"A alternativa B representa o comportamento clássico de policy incompleta ou mal ordenada.",wrong:{A:"Policy de firewall não muda ARP dos hosts dessa forma.",C:"Firewall não apaga VLANs do domínio de switching.",D:"Atualização de policy não implica reconfiguração automática de DHCP relay.",E:"ACL/policy no firewall não remove marcação 802.1Q da trunk."}}},
+      {q:"Qual interpretação diferencia melhor um problema de DNS de um problema de reachability até o serviço remoto?",options:{A:"Se o acesso por IP direto ao serviço funciona, mas o nome falha, a hipótese de DNS se fortalece; se nem por IP direto o acesso é consistente, o problema pode estar além do DNS.",B:"DNS e reachability são sinônimos práticos em qualquer rede IP moderna, porque a resolução de nomes e o caminho até o serviço fazem parte da mesma etapa operacional.",C:"Se o gateway local responde a ping, DNS está automaticamente validado tanto para nomes internos quanto externos.",D:"Se há internet navegável, não pode existir problema em DNS interno ou em reachability até resolvedores corporativos publicados apenas pela VPN.",E:"Reachability só existe em camada 2, portanto qualquer serviço remoto acessado por IP já está automaticamente fora dessa análise."},answer:"A",explain:{correct:"A alternativa A diferencia corretamente as hipóteses.",wrong:{B:"DNS e reachability não são a mesma coisa.",C:"Gateway local responder não valida DNS.",D:"Internet pública funcionando não garante saúde do DNS interno.",E:"Reachability não se limita à camada 2."}}},
+      {q:"Pensando em método de troubleshooting, qual abordagem é a mais madura e defensável para este incidente?",options:{A:"Reiniciar dispositivos aleatoriamente para verificar se o problema some antes de coletar evidências, já que restauração espontânea também é um dado operacional válido.",B:"Correlacionar sintomas com a janela de mudanças, validar escopo por segmento e aplicação, comparar hosts afetados e não afetados e testar por camadas.",C:"Trocar de imediato todos os switches de acesso sem testar trunk, VPN ou policy, porque a presença de múltiplos sintomas costuma indicar falha distribuída no domínio de acesso.",D:"Focar apenas no ERP, porque problemas simultâneos de voz e DNS interno tendem a ser ruído e raramente ajudam na identificação da causa principal.",E:"Publicar o ERP diretamente na internet para simplificar o diagnóstico, removendo temporariamente a dependência da VPN e observando se os sintomas desaparecem."},answer:"B",explain:{correct:"A alternativa B representa o troubleshooting maduro.",wrong:{A:"Reinício aleatório antes de coletar evidência pode mascarar a causa.",C:"Trocar hardware antes de validar hipóteses principais é desperdício.",D:"Ignorar sintomas correlatos reduz a visão sistêmica.",E:"Publicar ERP na internet não é método aceitável de troubleshooting."}}},
+      {q:"Qual conclusão integrada é a mais tecnicamente defensável com base no case apresentado?",options:{A:"Os sintomas indicam uma única causa puramente física e excluem, com alto grau de certeza, firewall, DNS, segmentação e parâmetros do túnel como fatores relevantes.",B:"Há forte indício de cenário multifatorial, em que MTU/MSS da VPN, policy da zona VPN, validação de trunk ou segmentação e tratamento de QoS precisam ser investigados em conjunto.",C:"Basta um host acessar o ERP por IP para concluir que todo o ambiente está correto, restando apenas ajustar o navegador dos usuários que ainda reclamam de lentidão ou falha.",D:"Como ICMP pequeno responde, as hipóteses de MTU, policy e DNS devem ser descartadas e o foco deve migrar integralmente para aplicação no datacenter.",E:"O caso está resolvido sem necessidade de troubleshooting adicional, porque o conjunto de evidências já permite fechar diagnóstico definitivo sem testes complementares."},answer:"B",explain:{correct:"A alternativa B é a mais defensável porque o case foi construído com sintomas de mais de um domínio.",wrong:{A:"O próprio case enfraquece a hipótese de causa puramente física.",C:"Um host funcional não valida o ambiente inteiro.",D:"ICMP pequeno não descarta MTU, DNS ou policy.",E:"Ainda são necessários testes para fechar o diagnóstico."}}}
+    ];
+
+    const questionsContainer = document.getElementById('questions');
+    const reportQuestions = document.getElementById('reportQuestions');
+    const today = new Date();
+    const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    document.getElementById('participantDate').value = localDate;
+
+    questionsData.forEach((item, idx) => {
+      const article = document.createElement('article');
+      article.className = 'question';
+      article.innerHTML = `
+        <div class="q-head">
+          <div class="q-number">${idx + 1}</div>
+          <p class="q-text">${item.q}</p>
+        </div>
+        <div class="options">
+          ${Object.entries(item.options).map(([key, val]) => `
+            <div class="option">
+              <input type="radio" id="q${idx}_${key}" name="q${idx}" value="${key}">
+              <label for="q${idx}_${key}"><b>${key})</b> ${val}</label>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      questionsContainer.appendChild(article);
+    });
+
+    function formatDateBr(isoDate){
+      if(!isoDate) return '--/--/----';
+      const [y,m,d] = isoDate.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    function sanitizeFileName(text){
+      return text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9\s_-]/g,'').trim().replace(/\s+/g,'_').slice(0,80) || 'documento_redes';
+    }
+
+    function scrollToVisible(id){
+      const el = document.getElementById(id);
+      if(!el) return;
+      if(getComputedStyle(el).display === 'none') return;
+      el.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    function buildCertificate(){
+      const name = document.getElementById('participantName').value.trim();
+      const pronoun = document.getElementById('participantPronoun').value;
+      const date = document.getElementById('participantDate').value;
+      document.getElementById('certName').textContent = name.toUpperCase();
+      document.getElementById('certHighlight').textContent = `${pronoun} É INCRÍVEL.`;
+      document.getElementById('certDate').textContent = formatDateBr(date);
+    }
+
+    function collectResults(){
+      let score = 0;
+      let unanswered = [];
+      const results = questionsData.map((item, idx) => {
+        const marked = document.querySelector(`input[name="q${idx}"]:checked`);
+        if(!marked) unanswered.push(idx + 1);
+        const markedLetter = marked ? marked.value : null;
+        const isCorrect = markedLetter === item.answer;
+        if(isCorrect) score++;
+        return {
+          question: item.q,
+          markedLetter,
+          markedText: markedLetter ? item.options[markedLetter] : '',
+          correctLetter: item.answer,
+          correctText: item.options[item.answer],
+          isCorrect,
+          correctExplanation: item.explain.correct,
+          markedWrongExplanation: markedLetter && markedLetter !== item.answer ? item.explain.wrong[markedLetter] : ''
+        };
+      });
+      return {score, unanswered, results};
+    }
+
+    function buildAnswerReport(results, score){
+      document.getElementById('reportName').textContent = document.getElementById('participantName').value.trim();
+      document.getElementById('reportDate').textContent = formatDateBr(document.getElementById('participantDate').value);
+      document.getElementById('reportScore').textContent = `${score}/10`;
+      reportQuestions.innerHTML = results.map((r, idx) => `
+        <div class="report-question">
+          <h3>${idx + 1}. ${r.question}</h3>
+          <div class="report-chip ${r.isCorrect ? 'chip-ok' : 'chip-bad'}">${r.isCorrect ? 'Resposta do participante: correta' : 'Resposta do participante: incorreta'}</div>
+          <div class="report-chip chip-warn">Correta: ${r.correctLetter}</div>
+          <div class="report-line"><strong>Marcada:</strong> ${r.markedLetter ? r.markedLetter + ') ' + r.markedText : 'Não respondida'}</div>
+          <div class="report-line"><strong>Correta:</strong> ${r.correctLetter}) ${r.correctText}</div>
+          <div class="report-line"><strong>Por que a correta é a melhor:</strong> ${r.correctExplanation}</div>
+          ${r.markedLetter && !r.isCorrect ? `<div class="report-line"><strong>Por que a alternativa marcada não é a melhor:</strong> ${r.markedWrongExplanation}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function checkAnswers(){
+      const name = document.getElementById('participantName').value.trim();
+      const pronoun = document.getElementById('participantPronoun').value;
+      const date = document.getElementById('participantDate').value;
+      const status = document.getElementById('statusBox');
+
+      if(!name){
+        status.className='status bad';
+        status.textContent='Preencha o nome completo. Sem nome, sem documento.';
+        return;
+      }
+      if(!pronoun){
+        status.className='status bad';
+        status.textContent='Selecione ELE, ELA ou ELU para compor o certificado.';
+        return;
+      }
+      if(!date){
+        status.className='status bad';
+        status.textContent='Informe a data de conclusão.';
+        return;
+      }
+
+      const {score, unanswered, results} = collectResults();
+      if(unanswered.length){
+        status.className='status bad';
+        status.textContent=`Você ainda não respondeu todas as questões. Falta(m): ${unanswered.join(', ')}.`;
+        return;
+      }
+
+      buildAnswerReport(results, score);
+      const reportShell = document.getElementById('answerReportShell');
+      reportShell.style.display = 'block';
+      document.getElementById('downloadReportBtn').disabled = false;
+      document.getElementById('gotoReportBtn').disabled = false;
+
+      const certShell = document.getElementById('certificateShell');
+      if(score === questionsData.length){
+        buildCertificate();
+        certShell.style.display = 'block';
+        document.getElementById('downloadCertBtn').disabled = false;
+        document.getElementById('gotoCertBtn').disabled = false;
+        status.className='status ok';
+        status.textContent=`Acerto total: ${score}/10. PDF das respostas liberado e certificado liberado.`;
+      } else {
+        certShell.style.display = 'none';
+        document.getElementById('downloadCertBtn').disabled = true;
+        document.getElementById('gotoCertBtn').disabled = true;
+        status.className='status bad';
+        status.textContent=`Resultado: ${score}/10. O PDF das respostas comentadas foi liberado. O certificado continua bloqueado até 10/10.`;
+      }
+
+      setTimeout(() => reportShell.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+    }
+
+    function withPrintMode(modeClass, fileBaseName){
+      document.body.classList.add(modeClass);
+      const originalTitle = document.title;
+      document.title = fileBaseName;
+      setTimeout(() => {
+        window.print();
+        document.title = originalTitle;
+        setTimeout(() => document.body.classList.remove(modeClass), 300);
+      }, 100);
+    }
+
+    function downloadAnswerReport(){
+      const shell = document.getElementById('answerReportShell');
+      if(getComputedStyle(shell).display === 'none') return;
+      const contentReady = document.getElementById('reportQuestions').children.length > 0;
+      if(!contentReady) return;
+      const name = sanitizeFileName(document.getElementById('participantName').value.trim());
+      withPrintMode('print-report-mode', `respostas_comentadas_${name}`);
+    }
+
+    function downloadCertificate(){
+      const shell = document.getElementById('certificateShell');
+      if(getComputedStyle(shell).display === 'none') return;
+      const name = sanitizeFileName(document.getElementById('participantName').value.trim());
+      withPrintMode('print-certificate-mode', `certificado_${name}`);
+    }
+  </script>
+</body>
+</html>

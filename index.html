@@ -590,7 +590,7 @@ function xorReveal(encoded,salt){const data=b64bytes(encoded);const saltBytes=ne
 function secureShuffle(items){const arr=[...items];const random=new Uint32Array(arr.length);crypto.getRandomValues(random);for(let i=arr.length-1;i>0;i--){const j=random[i]%(i+1);[arr[i],arr[j]]=[arr[j],arr[i]]}return arr;}
 function formatDateBr(iso){if(!iso)return'--/--/----';const [y,m,d]=iso.split('-');return `${d}/${m}/${y}`;}
 function sanitizeFileName(t){return t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9\s_-]/g,'').trim().replace(/\s+/g,'_').slice(0,80)||'certificado';}
-function startLab(){const name=document.getElementById('participantName').value.trim();const pronoun=document.getElementById('participantPronoun').value;const status=document.getElementById('startStatus');if(!name){status.className='status bad';status.textContent='Preencha o nome completo antes de acessar a war room.';return}if(!pronoun){status.className='status bad';status.textContent='Selecione o pronome para montar o certificado.';return}status.className='status ok';status.textContent='War room iniciada.';document.getElementById('labPage').style.display='block';renderQuestions();writeTerm('Be Safe .Inc Network Response Console\nDigite help para listar comandos. Comece por show topology para entender o caminho real antes de responder.\n');setTimeout(()=>document.getElementById('labPage').scrollIntoView({behavior:'smooth'}),80)}
+function startLab(){const name=document.getElementById('participantName').value.trim();const pronoun=document.getElementById('participantPronoun').value;const status=document.getElementById('startStatus');if(!name){status.className='status bad';status.textContent='Preencha o nome completo antes de acessar a war room.';return}if(!pronoun){status.className='status bad';status.textContent='Selecione o pronome para montar o certificado.';return}status.className='status ok';status.textContent='War room iniciada.';bindCertificateLiveFields();document.getElementById('labPage').style.display='block';renderQuestions();writeTerm('Be Safe .Inc Network Response Console\nDigite help para listar comandos. Comece por show topology para entender o caminho real antes de responder.\n');setTimeout(()=>document.getElementById('labPage').scrollIntoView({behavior:'smooth'}),80)}
 const outputs={
 'help':`Comandos disponíveis:\nhelp\nscope\nshow vlan brief\nshow trunk\nshow ip route\nshow dhcp vlan20\nresolve erp.besafe.inc\nping 172.20.10.15\nping-mtu\nfirewall policy vpn\nvpn status\nqos status\nevidence\n\nDica: ping pequeno sozinho não fecha diagnóstico. Investigue MTU/MSS, DNS, trunk, policy e QoS.`,
 'scope':`Escopo Be Safe .Inc:\nVLAN 10 Admin 10.10.10.0/24\nVLAN 20 Financeiro 10.10.20.0/24\nVLAN 30 Voz 10.10.30.0/24\nVLAN 40 Servidores 10.10.40.0/24\nDatacenter SP 172.20.0.0/16\nTúnel IPSec matriz -> datacenter ativo.`,
@@ -621,16 +621,49 @@ function certIdFor(name,date,pct){
   return 'NRC-' + Math.abs(hash).toString(16).toUpperCase().padStart(8,'0');
 }
 function buildCertificate(pct){
-  const name=(document.getElementById('participantName').value.trim() || 'Analista de Redes');
-  const pronoun=(document.getElementById('participantPronoun').value || 'Participante aprovado(a)');
-  const dateIso=document.getElementById('participantDate').value;
-  document.getElementById('certName').textContent=name;
-  document.getElementById('certPronoun').textContent=pronoun;
-  document.getElementById('certScore').textContent=pct+'%';
-  document.getElementById('certDate').textContent=formatDateBr(dateIso);
-  document.getElementById('certId').textContent='ID: '+certIdFor(name,dateIso,pct);
+  updateCertificateFromInputs(pct);
 }
+
+function getCurrentCertificatePct(){
+  const scoreText = document.getElementById('scoreText')?.innerText || '';
+  const m = scoreText.match(/(\d+)%/);
+  return m ? Number(m[1]) : 100;
+}
+function updateCertificateFromInputs(pct){
+  const nameEl=document.getElementById('participantName');
+  const pronounEl=document.getElementById('participantPronoun');
+  const dateEl=document.getElementById('participantDate');
+  const name=(nameEl?.value || '').trim() || 'Analista de Redes';
+  const pronounRaw=(pronounEl?.value || '').trim();
+  const pronoun = pronounRaw ? pronounRaw : 'Participante aprovado(a)';
+  const dateIso=dateEl?.value || new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().split('T')[0];
+  const finalPct = (typeof pct === 'number' && !Number.isNaN(pct)) ? pct : getCurrentCertificatePct();
+  const certName=document.getElementById('certName');
+  const certPronoun=document.getElementById('certPronoun');
+  const certScore=document.getElementById('certScore');
+  const certDate=document.getElementById('certDate');
+  const certId=document.getElementById('certId');
+  if(certName) certName.textContent=name;
+  if(certPronoun) certPronoun.textContent=pronoun;
+  if(certScore) certScore.textContent=finalPct+'%';
+  if(certDate) certDate.textContent=formatDateBr(dateIso);
+  if(certId) certId.textContent='ID: '+certIdFor(name,dateIso,finalPct);
+}
+function bindCertificateLiveFields(){
+  ['participantName','participantPronoun','participantDate'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el && !el.dataset.certBound){
+      el.addEventListener('input',()=>updateCertificateFromInputs());
+      el.addEventListener('change',()=>updateCertificateFromInputs());
+      el.dataset.certBound='1';
+    }
+  });
+  updateCertificateFromInputs();
+}
+document.addEventListener('DOMContentLoaded',bindCertificateLiveFields);
+
 function downloadCertificatePng(){
+  updateCertificateFromInputs();
   const el=document.getElementById('certificate');
   if(!el){ alert('Certificado não encontrado.'); return; }
   const name=(document.getElementById('participantName').value.trim() || 'analista_de_redes');
